@@ -602,8 +602,34 @@ export default {
           });
         }
         
-        const sheetName = 'Sheet1';
-        const range = `${sheetName}!A:Z`;
+        // 先获取表格元信息，找到第一个Sheet
+        const metaResponse = await fetch(
+          `https://open.feishu.cn/open-apis/sheets/v3/spreadsheets/${FEISHU_SPREADSHEET_ID}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        
+        const metaText = await metaResponse.text();
+        let metaData;
+        try {
+          metaData = JSON.parse(metaText);
+        } catch(e) {
+          return new Response(JSON.stringify({ error: '解析元数据失败', message: metaText }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+        
+        const sheets = metaData.data?.sheets;
+        if (!sheets || sheets.length === 0) {
+          return new Response(JSON.stringify({ error: '表格没有工作表' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+        
+        const firstSheet = sheets[0].sheet_id || sheets[0].sheetId;
+        
+        const range = `${encodeURIComponent(firstSheet)}!A:Z`;
         
         const response = await fetch(
           `https://open.feishu.cn/open-apis/sheets/v3/spreadsheets/${FEISHU_SPREADSHEET_ID}/values/${range}`,
