@@ -628,22 +628,29 @@ export default {
         }
         
         // 直接使用 values API
-        // 尝试使用 Sheet1 作为默认表名
-        const sheetName = 'Sheet1';
-        const range = `${sheetName}!A:Z`;
+        // 尝试多个可能的表名
+        const sheetNames = ['Sheet1', '工作表1', 'Sheet', '工作表'];
+        let text = '';
+        let resp;
         
-        const response = await fetch(
-          `https://open.feishu.cn/open-apis/sheets/v3/spreadsheets/${FEISHU_SPREADSHEET_ID}/values/${range}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        for (const sheetName of sheetNames) {
+          const range = `${sheetName}!A:Z`;
+          resp = await fetch(
+            `https://open.feishu.cn/open-apis/sheets/v3/spreadsheets/${FEISHU_SPREADSHEET_ID}/values/${range}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          text = await resp.text();
+          
+          if (resp.ok && text.includes('valueRange')) {
+            break;
+          }
+        }
         
-        const text = await response.text();
-        
-        if (!response.ok) {
+        if (!resp.ok) {
           return new Response(JSON.stringify({ 
             error: '飞书API错误', 
             message: text,
-            status: response.status
+            status: resp.status
           }), {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
