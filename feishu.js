@@ -580,24 +580,31 @@ export default {
       });
     }
     
-    // 调试端点：查看飞书 sheets
+    // 调试端点 - 获取完整元数据
     if (url.pathname === '/debug') {
       try {
         const token = await getAccessToken();
         
-        // 使用正确的 API 获取 sheets 列表
-        const response = await fetch(
-          `https://open.feishu.cn/open-apis/sheets/v3/spreadsheets/${FEISHU_SPREADSHEET_ID}/sheets`,
-          { 
-            headers: { 
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            } 
-          }
-        );
-        const text = await response.text();
+        // 尝试不同的 API 端点
+        const endpoints = [
+          `https://open.feishu.cn/open-apis/sheets/v3/spreadsheets/${FEISHU_SPREADSHEET_ID}`,
+          `https://open.feishu.cn/open-apis/sheets/v2/spreadsheets/${FEISHU_SPREADSHEET_ID}`,
+          `https://open.feishu.cn/open-apis/drive/v1/files/${FEISHU_SPREADSHEET_ID}`
+        ];
         
-        return new Response(text, {
+        let result = { attempts: [] };
+        
+        for (const ep of endpoints) {
+          try {
+            const r = await fetch(ep, { headers: { Authorization: `Bearer ${token}` } });
+            const t = await r.text();
+            result.attempts.push({ endpoint: ep, status: r.status, response: t.substring(0, 500) });
+          } catch (e) {
+            result.attempts.push({ endpoint: ep, error: e.message });
+          }
+        }
+        
+        return new Response(JSON.stringify(result), {
           headers: { 'Content-Type': 'application/json' }
         });
       } catch (e) {
