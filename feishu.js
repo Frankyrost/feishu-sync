@@ -28,7 +28,18 @@ async function getAccessToken() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ app_id: FEISHU_APP_ID, app_secret: FEISHU_APP_SECRET })
   });
-  const data = await response.json();
+  
+  const text = await response.text();
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch (e) {
+    throw new Error('飞书认证失败: ' + text);
+  }
+  
+  if (data.error) {
+    throw new Error('飞书认证错误: ' + JSON.stringify(data));
+  }
   
   // 缓存 token，2 小时后过期
   cachedToken = data.tenant_access_token;
@@ -106,12 +117,32 @@ export default {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      // 调试：打印原始响应
-      const rawText = await response.text();
-      console.log('Raw Response:', rawText);
+      const text = await response.text();
       
-      const result = JSON.parse(rawText);
-      console.log('Parsed Result:', JSON.stringify(result));
+      // 检查响应状态
+      if (!response.ok) {
+        return new Response(JSON.stringify({ 
+          error: '飞书API错误', 
+          message: text,
+          status: response.status
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      
+      let result;
+      try {
+        result = JSON.parse(text);
+      } catch (e) {
+        return new Response(JSON.stringify({ 
+          error: 'JSON解析失败', 
+          message: text.substring(0, 500)
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
       
       const rows = result.data?.valueRange?.values || [];
       const formattedData = formatData(rows);
@@ -125,7 +156,6 @@ export default {
       });
       
     } catch (error) {
-      console.log('Error:', error);
       return new Response(JSON.stringify({ 
         error: '获取数据失败', 
         message: error.message 
