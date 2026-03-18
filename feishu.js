@@ -634,18 +634,28 @@ export default {
           });
         }
         
-        // 使用正确的飞书 API 格式
-        // 范围格式应该是: {sheetId}!A:Z 或 {sheetName}!A:Z
+        // 尝试多个 range 格式
+        const rangeFormats = [
+          FEISHU_SPREADSHEET_ID + '!A:Z',  // token!A:Z
+          'Sheet1!A:Z',
+          '0!A:Z',  // 数字索引
+          '%E5%B7%A5%E4%BD%9C%E8%A1%A81!A:Z'  // URL编码的"工作表1"
+        ];
         
-        // 尝试使用 spreadsheet token 作为 sheet 引用
-        const range = `${FEISHU_SPREADSHEET_ID}!A:Z`;
+        let text = '';
+        let resp;
         
-        const resp = await fetch(
-          `https://open.feishu.cn/open-apis/sheets/v3/spreadsheets/${FEISHU_SPREADSHEET_ID}/values/${range}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        
-        let text = await resp.text();
+        for (const range of rangeFormats) {
+          resp = await fetch(
+            `https://open.feishu.cn/open-apis/sheets/v3/spreadsheets/${FEISHU_SPREADSHEET_ID}/values/${range}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          text = await resp.text();
+          
+          if (resp.ok && text.includes('valueRange')) {
+            break;
+          }
+        }
         
         if (!resp.ok) {
           return new Response(JSON.stringify({ 
