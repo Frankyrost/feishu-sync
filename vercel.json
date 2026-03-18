@@ -1,0 +1,7 @@
+{
+  "builds": [
+    { "use": "@vercel/static", "src": "public/**" },
+    { "use": "@vercel/node", "src": "api/feishu.js" }
+  ],
+  "installCommand": "npm install"
+}

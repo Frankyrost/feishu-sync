@@ -1,0 +1,8 @@
+name = "feishu-sync"
+main = "api/feishu.js"
+compatibility_date = "2023-12-01"
+
+[vars]
+FEISHU_APP_ID = "cli_a92507a7db7c5bd1"
+FEISHU_APP_SECRET = "LG8lGSoyNUjoHX5x0oTE5enaFCWX7oCs"
+FEISHU_SPREADSHEET_ID = "PO8hsFebahujj6tLCXKc8YXYnZe"

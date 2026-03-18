@@ -1,0 +1,8 @@
+{
+  "name": "feishu-sync",
+  "version": "1.0.0",
+  "description": "飞书表格同步服务",
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}
