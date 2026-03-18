@@ -569,6 +569,17 @@ export default {
   async fetch(request) {
     const url = new URL(request.url);
     
+    // 测试端点
+    if (url.pathname === '/test') {
+      return new Response(JSON.stringify({ 
+        status: 'ok',
+        message: 'API works',
+        spreadsheetId: FEISHU_SPREADSHEET_ID
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    
     // 返回前端页面
     if (url.pathname === '/' || url.pathname === '/index.html') {
       return new Response(htmlPage, {
@@ -584,6 +595,12 @@ export default {
 
       try {
         const token = await getAccessToken();
+        if (!token) {
+          return new Response(JSON.stringify({ error: '获取token失败' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
         
         const sheetName = 'Sheet1';
         const range = `${sheetName}!A:Z`;
