@@ -1,10 +1,14 @@
 /*
-飞书表格同步 API (Cloudflare Workers版本)
+飞书表格同步 API (Cloudflare Workers 版本)
 */
 
 const FEISHU_APP_ID = 'cli_a92507a7db7c5bd1';
 const FEISHU_APP_SECRET = 'LG8lGSoyNUjoHX5x0oTE5enaFCWX7oCs';
 const FEISHU_SPREADSHEET_ID = 'PO8hsFebahujj6tLCXKc8YXYnZe';
+
+// Token 缓存
+let cachedToken = null;
+let tokenExpiry = 0;
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,15 +16,25 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
 };
 
-// 获取飞书access_token
+// 获取飞书 access_token（带缓存）
 async function getAccessToken() {
+  // 如果 token 没过期，直接用缓存的
+  if (cachedToken && Date.now() < tokenExpiry) {
+    return cachedToken;
+  }
+  
   const response = await fetch('https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ app_id: FEISHU_APP_ID, app_secret: FEISHU_APP_SECRET })
   });
   const data = await response.json();
-  return data.tenant_access_token;
+  
+  // 缓存 token，2 小时后过期
+  cachedToken = data.tenant_access_token;
+  tokenExpiry = Date.now() + 2 * 60 * 60 * 1000;
+  
+  return cachedToken;
 }
 
 // 格式化数据
@@ -61,7 +75,7 @@ function getCategories(row, headers) {
   for (const key of ['类目', 'category', '分类', '品类']) {
     const idx = headers.indexOf(key);
     if (idx >= 0 && row[idx]) {
-      return row[idx].toString().trim().split(/[/,，,、]/).map(c => c.trim()).filter(c => c);
+      return row[idx].toString().trim().split(/[/,，,、/).map(c => c.trim()).filter(c => c);
     }
   }
   return ['全品类'];
