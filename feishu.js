@@ -621,7 +621,7 @@ export default {
         
         // 先获取表格元信息，找到第一个Sheet
         const metaResponse = await fetch(
-          `https://open.feishu.cn/open-apis/sheets/v3/spreadsheets/${FEISHU_SPREADSHEET_ID}`,
+          `https://open.feishu.cn/open-apis/sheets/v3/spreadsheets/${FEISHU_SPREADSHEET_ID}/sheets`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         
@@ -638,13 +638,13 @@ export default {
         
         const sheets = metaData.data?.sheets;
         if (!sheets || sheets.length === 0) {
-          return new Response(JSON.stringify({ error: '表格没有工作表' }), {
+          return new Response(JSON.stringify({ error: '表格没有工作表', debug: metaText }), {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           });
         }
         
-        const firstSheet = sheets[0].sheet_id || sheets[0].sheetId;
+        const firstSheet = sheets[0].sheet_id;
         
         const range = `${encodeURIComponent(firstSheet)}!A:Z`;
         
