@@ -580,6 +580,23 @@ export default {
       });
     }
     
+    // 调试端点：查看飞书元数据
+    if (url.pathname === '/debug') {
+      try {
+        const token = await getAccessToken();
+        const metaResponse = await fetch(
+          `https://open.feishu.cn/open-apis/sheets/v3/spreadsheets/${FEISHU_SPREADSHEET_ID}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const text = await metaResponse.text();
+        return new Response(text, {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (e) {
+        return new Response(e.message, { status: 500 });
+      }
+    }
+    
     // 返回前端页面
     if (url.pathname === '/' || url.pathname === '/index.html') {
       return new Response(htmlPage, {
