@@ -580,19 +580,24 @@ export default {
       });
     }
     
-    // 调试端点：查看飞书元数据
+    // 调试端点：查看飞书 sheets
     if (url.pathname === '/debug') {
       try {
         const token = await getAccessToken();
         
-        // 尝试获取表格下的所有sheets
-        const metaResponse = await fetch(
+        // 使用正确的 API 获取 sheets 列表
+        const response = await fetch(
           `https://open.feishu.cn/open-apis/sheets/v3/spreadsheets/${FEISHU_SPREADSHEET_ID}/sheets`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          { 
+            headers: { 
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            } 
+          }
         );
-        const metaText = await metaResponse.text();
+        const text = await response.text();
         
-        return new Response(metaText, {
+        return new Response(text, {
           headers: { 'Content-Type': 'application/json' }
         });
       } catch (e) {
