@@ -584,12 +584,15 @@ export default {
     if (url.pathname === '/debug') {
       try {
         const token = await getAccessToken();
+        
+        // 尝试获取表格下的所有sheets
         const metaResponse = await fetch(
-          `https://open.feishu.cn/open-apis/sheets/v3/spreadsheets/${FEISHU_SPREADSHEET_ID}`,
+          `https://open.feishu.cn/open-apis/sheets/v3/spreadsheets/${FEISHU_SPREADSHEET_ID}/sheets`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        const text = await metaResponse.text();
-        return new Response(text, {
+        const metaText = await metaResponse.text();
+        
+        return new Response(metaText, {
           headers: { 'Content-Type': 'application/json' }
         });
       } catch (e) {
@@ -619,34 +622,10 @@ export default {
           });
         }
         
-        // 先获取表格元信息，找到第一个Sheet
-        const metaResponse = await fetch(
-          `https://open.feishu.cn/open-apis/sheets/v3/spreadsheets/${FEISHU_SPREADSHEET_ID}/sheets`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        
-        const metaText = await metaResponse.text();
-        let metaData;
-        try {
-          metaData = JSON.parse(metaText);
-        } catch(e) {
-          return new Response(JSON.stringify({ error: '解析元数据失败', message: metaText }), {
-            status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          });
-        }
-        
-        const sheets = metaData.data?.sheets;
-        if (!sheets || sheets.length === 0) {
-          return new Response(JSON.stringify({ error: '表格没有工作表', debug: metaText }), {
-            status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          });
-        }
-        
-        const firstSheet = sheets[0].sheet_id;
-        
-        const range = `${encodeURIComponent(firstSheet)}!A:Z`;
+        // 直接使用 values API
+        // 尝试使用 Sheet1 作为默认表名
+        const sheetName = 'Sheet1';
+        const range = `${sheetName}!A:Z`;
         
         const response = await fetch(
           `https://open.feishu.cn/open-apis/sheets/v3/spreadsheets/${FEISHU_SPREADSHEET_ID}/values/${range}`,
