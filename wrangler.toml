@@ -1,5 +1,5 @@
 name = "feishu-sync"
-main = "api/feishu.js"
+main = "feishu.js"
 compatibility_date = "2023-12-01"
 
 [vars]
