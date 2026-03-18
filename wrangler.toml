@@ -1,6 +1,9 @@
-name = "feishu-sync"
+name = "feishu-daren"
 main = "feishu.js"
 compatibility_date = "2023-12-01"
+
+[site]
+bucket = "./public"
 
 [vars]
 FEISHU_APP_ID = "cli_a92507a7db7c5bd1"
