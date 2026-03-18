@@ -1,4 +1,4 @@
-name = "feishu-sync"
+name = "feishu-daren"
 main = "feishu.js"
 compatibility_date = "2023-12-01"
 
