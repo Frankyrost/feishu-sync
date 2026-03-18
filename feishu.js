@@ -98,27 +98,18 @@ export default {
     try {
       const token = await getAccessToken();
       
-      const metaResponse = await fetch(
-        `https://open.feishu.cn/open-apis/sheets/v3/spreadsheets/${FEISHU_SPREADSHEET_ID}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      const metaData = await metaResponse.json();
-      
-      const sheets = metaData.data?.sheets;
-      if (!sheets || sheets.length === 0) {
-        return new Response(JSON.stringify({ error: '表格没有工作表' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
-      
-      const firstSheet = sheets[0].sheet_id || sheets[0].sheetId;
-      const range = `${encodeURIComponent(firstSheet)}!A:Z`;
+      // 直接用工作表名字，不获取 metadata 了
+      const sheetName = 'Sheet1';  // 你的工作表名字
+      const range = `${sheetName}!A:Z`;
       
       const response = await fetch(
         `https://open.feishu.cn/open-apis/sheets/v3/spreadsheets/${FEISHU_SPREADSHEET_ID}/values/${range}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const result = await response.json();
+      
+      // 调试日志
+      console.log('API Response:', JSON.stringify(result));
       
       const rows = result.data?.valueRange?.values || [];
       const formattedData = formatData(rows);
@@ -132,6 +123,7 @@ export default {
       });
       
     } catch (error) {
+      console.log('Error:', error);
       return new Response(JSON.stringify({ 
         error: '获取数据失败', 
         message: error.message 
