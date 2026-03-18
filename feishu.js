@@ -650,7 +650,9 @@ export default {
           return new Response(JSON.stringify({ 
             error: '飞书API错误', 
             message: text,
-            status: resp.status
+            status: resp.status,
+            triedSheets: ['Sheet1', '工作表1', 'Sheet', '工作表'],
+            spreadsheetId: FEISHU_SPREADSHEET_ID
           }), {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
