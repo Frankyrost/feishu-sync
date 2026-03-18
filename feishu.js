@@ -75,7 +75,7 @@ function getCategories(row, headers) {
   for (const key of ['类目', 'category', '分类', '品类']) {
     const idx = headers.indexOf(key);
     if (idx >= 0 && row[idx]) {
-      return row[idx].toString().trim().split(/[/,，,、/).map(c => c.trim()).filter(c => c);
+      return row[idx].toString().trim().split(/[/,，,、]/).map(c => c.trim()).filter(c => c);
     }
   }
   return ['全品类'];
